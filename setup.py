@@ -31,7 +31,7 @@ setup(
         "License :: OSI Approved :: MIT License",  # Choose your license
         "Operating System :: OS Independent",
     ],
-    python_requires=">=3.11",
+    python_requires=">=3.10",
     entry_points={
         "console_scripts": [
             "your_command=your_module:main_function",  # Optional: command-line interface
