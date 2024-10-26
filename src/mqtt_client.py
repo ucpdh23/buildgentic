@@ -3,7 +3,7 @@ from principal import AGENT_REGISTRY
 
 class MqttClient:
     def __init__(self, agents):
-        self.agents = [agent() for agent in AGENT_REGISTRY]
+        self.agents = agents
         self.client = mqtt.Client()
 
         # Set callback for when a message is received

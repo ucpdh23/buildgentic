@@ -1,0 +1,51 @@
+# Azure Pipeline for Python Project Packaging
+
+trigger:
+  branches:
+    include:
+      - main  # or the branch you want to trigger on
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  pythonVersion: '3.11'  # Change to your preferred Python version
+
+steps:
+  
+- task: UsePythonVersion@0
+  inputs:
+    versionSpec: '$(pythonVersion)'
+    addToPath: true
+
+- script: python -m venv venv
+  displayName: 'Create virtual environment'
+
+- script: |
+    source venv/bin/activate
+    python -m pip install --upgrade pip
+    pip install -r requirements.txt
+  displayName: 'Install dependencies'
+
+- script: |
+    source venv/bin/activate
+    pip install pytest
+    pytest
+  displayName: 'Run tests'
+
+- script: |
+    source venv/bin/activate
+    pip install --upgrade setuptools wheel twine
+    python setup.py sdist bdist_wheel
+  displayName: 'Build package'
+
+
+- task: GithubRelease@1
+  displayName: 'Publishing artifact'
+  inputs:
+    gitHubConnection: ucpdh23_repo
+    repositoryName: ucpdh23/buildgentic
+    assets: $(Build.Repository.LocalPath)/dist/buildgentic-0.1.0-py3-none-any.whl
+    action: edit
+    target: '$(Build.SourceVersion)'
+    tag: $(Build.BuildNumber)
