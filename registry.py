@@ -7,6 +7,7 @@ def register_agent(cls):
     glob_var.append(cls)
     return cls
 
+
 def get_registered_agents():
     """Return instances of all registered agents."""
 
