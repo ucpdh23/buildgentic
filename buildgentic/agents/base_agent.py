@@ -10,7 +10,6 @@ class BaseAgent(ABC):
     def evaluate(self, topic: str) -> bool:
         """Evaluates if the agent should respond to the message."""
         return topic.startswith(self.base_topic)
-
         
 
     @abstractmethod

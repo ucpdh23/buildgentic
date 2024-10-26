@@ -34,7 +34,8 @@ setup(
     python_requires=">=3.10",
     entry_points={
         "console_scripts": [
-            "buildgentic = principal:startup",  # Optional: command-line interface
+            "buildgentic = buildgentic.principal:startup",  # Optional: command-line interface
+            "agent = agents.module:main",  # Optional: command-line interface
         ],
     },
 )

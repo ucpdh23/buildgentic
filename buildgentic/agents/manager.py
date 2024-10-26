@@ -1,7 +1,8 @@
-from agents.base_agent import BaseAgent
-from agents.prompt_templates import MANAGER_PROMPT
-from agents.toolkit import TOOLS
-from registry import register_agent
+from buildgentic.agents.base_agent import BaseAgent
+from buildgentic.agents.prompt_templates import MANAGER_PROMPT
+from buildgentic.agents.toolkit import TOOLS
+from buildgentic.registry import register_agent
+
 
 from dotenv import load_dotenv
 from langchain import hub
@@ -17,7 +18,7 @@ from langchain_openai import ChatOpenAI
 class ManagerAgent(BaseAgent):
 
     def __init__(self):
-        super.__init__(self, "manager")
+        super().__init__("manager")
         self.isDebugging = True
 
         self.name = "Manager"

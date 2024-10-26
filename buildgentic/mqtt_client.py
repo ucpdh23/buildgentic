@@ -1,5 +1,4 @@
 import paho.mqtt.client as mqtt
-from principal import AGENT_REGISTRY
 
 class MqttClient:
     def __init__(self, agents):
