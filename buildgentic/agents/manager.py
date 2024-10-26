@@ -4,7 +4,10 @@ from buildgentic.agents.toolkit import TOOLS
 from buildgentic.registry import register_agent
 
 
+import os
 from dotenv import load_dotenv
+
+
 from langchain import hub
 from langchain.agents import (
     AgentExecutor,
@@ -12,6 +15,12 @@ from langchain.agents import (
 )
 from langchain_core.tools import Tool
 from langchain_openai import ChatOpenAI
+
+load_dotenv()
+
+
+OPENAI_URL=os.getenv("OPENAI_URL")
+OPENAI_APIKEY=os.getenv("OPENAI_APIKEY")
 
 
 @register_agent
@@ -26,9 +35,10 @@ class ManagerAgent(BaseAgent):
         self.tools = TOOLS
         self.prompt = MANAGER_PROMPT
 
-        return
         self.llm = ChatOpenAI(
-            model="gpt-4o-mini", temperature=0
+            base_url=OPENAI_URL,
+            api_key=OPENAI_APIKEY,
+            temperature=0
         )
 
         self.agent = create_react_agent(
@@ -38,7 +48,7 @@ class ManagerAgent(BaseAgent):
                 stop_sequence=self.isDebugging,
         )
 
-        self.agent_executor = AgentExecutor.from_Agent_and_tools(
+        self.agent_executor = AgentExecutor.from_agent_and_tools(
             agent=self.agent,
             tools=self.tools,
             verbose=self.isDebugging,

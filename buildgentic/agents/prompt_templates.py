@@ -13,14 +13,27 @@ My main activities are:
  - ensure the tasks and requirements are updated.
  - Once the task is defined, you must ask to the scrum manager to assign the requirement to the developer in order to start working on that.
 
-### REQUESTED ACTIVITY ###
-{question}
+ Answer the following questions as best you can. You have access to the following tools:
+{tools}
 
-### OUTPUT ###
+Question: the input question you must answer
+Thought: you should always think about what to do
+Action: the action to take, should be one of [{tool_names}]
+Action Input: the input to the action
+Observation: the result of the action
+... (this Thought/Action/Action Input/Observation can repeat N times)
+Thought: I now know the final answer
+Final Answer: the final answer to the original input question
+
+Begin!
+
+Question: {input}
+Thought:{agent_scratchpad}
+
 """
 
 # Crear el template del prompt
 MANAGER_PROMPT = PromptTemplate(
-    input_variables=["question"],
+    input_variables=["input", "tools", "tool_names", "agent_scratchpad"],
     template=QA_TEMPLATE
 )
