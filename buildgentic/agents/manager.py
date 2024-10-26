@@ -25,6 +25,8 @@ class ManagerAgent(BaseAgent):
  
         self.tools = TOOLS
         self.prompt = MANAGER_PROMPT
+
+        return
         self.llm = ChatOpenAI(
             model="gpt-4o-mini", temperature=0
         )

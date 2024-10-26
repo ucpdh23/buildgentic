@@ -8,6 +8,8 @@ from buildgentic import agents
 from buildgentic.mqtt_client import MqttClient
 from buildgentic.registry import get_registered_agents
 
+import json
+
 load_dotenv()
 
 
@@ -39,11 +41,15 @@ def startup():
     mqtt_client = MqttClient(agents=get_registered_agents())
 
     # Connect and subscribe to a topic
-    mqtt_client.connect(broker=MQTT_BROKER_HOSTNAME, port=MQTT_BROKER_PORT, topic=MQTT_BROKER_TOPIC)
+    mqtt_client.connect(broker=MQTT_BROKER_HOSTNAME, port=int(MQTT_BROKER_PORT), topic=MQTT_BROKER_TOPIC)
+
+    payload = {
+        'action': "welcome",
+        'message': "buildgentic online :) and ready to work"
+    }
 
     # Example publishing a message
-    mqtt_client.publish(MQTT_BROKER_TOPIC, "This is an alert message")
-    mqtt_client.publish(MQTT_BROKER_TOPIC, "Short msg")
+    mqtt_client.publish(MQTT_BROKER_TOPIC, json.dumps(payload))
 
     # Start an infinite loop that will keep the client alive and listening
     mqtt_client.client.loop_forever()
