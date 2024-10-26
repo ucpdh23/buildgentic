@@ -34,7 +34,7 @@ setup(
     python_requires=">=3.10",
     entry_points={
         "console_scripts": [
-            "your_command=your_module:main_function",  # Optional: command-line interface
+            "buildgentic = principal:startup",  # Optional: command-line interface
         ],
     },
 )

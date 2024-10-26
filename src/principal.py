@@ -23,9 +23,8 @@ def load_agents_from_directory(directory="agents"):
             print(module_name)
             importlib.import_module(module_name)
 
-
-if __name__ == "__main__":
-    print("starting...")
+def startup():
+    print("starting startup...")
 
     # Load all agent files dynamically
     load_agents_from_directory()
@@ -42,3 +41,8 @@ if __name__ == "__main__":
 
     # Start an infinite loop that will keep the client alive and listening
     mqtt_client.client.loop_forever()
+
+    print("finalizing startup.")
+
+if __name__ == "__main__":
+    startup()
