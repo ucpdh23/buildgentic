@@ -40,12 +40,15 @@ steps:
   displayName: 'Build package'
 
 
-- task: GithubRelease@1
+- task: GitHubRelease@1
   displayName: 'Publishing artifact'
   inputs:
-    gitHubConnection: ucpdh23_repo
-    repositoryName: ucpdh23/buildgentic
-    assets: $(Build.Repository.LocalPath)/dist/buildgentic-0.1.0-py3-none-any.whl
-    action: edit
+    gitHubConnection: 'github.com_ucpdh23'
+    repositoryName: 'ucpdh23/buildgentic'
+    action: 'edit'
     target: '$(Build.SourceVersion)'
-    tag: $(Build.BuildNumber)
+    tag: '$(Build.BuildNumber)'
+    assets: '$(Build.Repository.LocalPath)/dist/buildgentic-0.1.0-py3-none-any.whl'
+    assetUploadMode: 'replace'
+    changeLogCompareToRelease: 'lastFullRelease'
+    changeLogType: 'commitBased'
