@@ -24,10 +24,11 @@ class BaseAgent(ABC):
 
     def evaluate(self, topic: str) -> bool:
         """Evaluates if the agent should respond to the message."""
-        return topic.startswith(self.base_topic)
+        return topic.endswith(self.name)
         
 
     @abstractmethod
     def execute(self, message: str):
         """Executes the agent's task if evaluation returns true."""
+        print(message)
         pass

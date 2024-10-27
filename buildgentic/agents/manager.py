@@ -7,6 +7,8 @@ from buildgentic.registry import register_agent
 import os
 from dotenv import load_dotenv
 
+import json
+
 
 from langchain import hub
 from langchain.agents import (
@@ -54,6 +56,15 @@ class ManagerAgent(BaseAgent):
 
 
     def execute(self, message: str):
-        response = self.agent_executor.invoke({"input" : message})
+        json_object = json.loads(message)
+
+        action = json_object['action']
+
+        response = ''
+        if (action == 'execute'):
+            response = self.agent_executor.invoke({"input" : message})
+        else:
+            print(action)
+
         return response
         

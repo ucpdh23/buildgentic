@@ -21,11 +21,12 @@ class MqttClient:
 
     def on_message(self, client, userdata, msg):
         message = msg.payload.decode()
-        if (self.debugging): print(f"Message received: {message}")
+        topic = msg.topic
+        if (self.debugging): print(f"Message received: {message} {topic} ")
 
         # Check each agent to see if it evaluates to True for the received message
         for agent in self.agents:
-            if agent.evaluate(message):
+            if agent.evaluate(topic):
                 agent.execute(message)
 
     def publish_msg(self, message):
