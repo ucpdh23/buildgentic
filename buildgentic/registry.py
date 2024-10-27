@@ -1,3 +1,7 @@
+from typing import List
+from buildgentic.agents.base_agent import BaseAgent
+
+
 glob_var = []
 
 def register_agent(cls):
@@ -8,7 +12,7 @@ def register_agent(cls):
     return cls
 
 
-def get_registered_agents():
+def build_registered_agents() -> List[BaseAgent]:
     """Return instances of all registered agents."""
 
     return [agent() for agent in glob_var]

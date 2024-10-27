@@ -14,6 +14,7 @@ class MqttClient:
         self.client.connect(host=broker, port=port)
         if (self.debugging): print("subscribing...")
         self.client.subscribe(topic)
+        self.topic = topic
         if (self.debugging): print("loop starting...")
         self.client.loop_start()
         print("connected")
@@ -26,6 +27,10 @@ class MqttClient:
         for agent in self.agents:
             if agent.evaluate(message):
                 agent.execute(message)
+
+    def publish_msg(self, message):
+        if (self.debugging): print("publishing message without topic", self.topic, message)
+        self.client.publish(self.topic, message)
 
     def publish(self, topic, message):
         if (self.debugging): print("publishing message", topic, message)

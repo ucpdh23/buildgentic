@@ -30,8 +30,6 @@ class ManagerAgent(BaseAgent):
         super().__init__("manager")
         self.isDebugging = True
 
-        self.name = "Manager"
- 
         self.tools = TOOLS
         self.prompt = MANAGER_PROMPT
 
