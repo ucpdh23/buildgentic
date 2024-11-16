@@ -24,7 +24,6 @@ def load_agents_from_directory(directory="agents"):
     print(os.path.realpath(directory))
 
     for filename in os.listdir(directory):
-        print(filename)
         if filename.endswith(".py") and filename != "__init__.py":
             module_name = f"buildgentic.agents.{filename[:-3]}"
             print(module_name)
@@ -49,7 +48,7 @@ def startup():
     }
 
     # Example publishing a message
-    mqtt_client.publish(MQTT_BROKER_TOPIC, json.dumps(payload))
+    mqtt_client.publish(MQTT_BROKER_TOPIC, payload)
 
     for agent in _agents:
         agent.registerInSevant(mqtt_client)

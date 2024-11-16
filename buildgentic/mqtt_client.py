@@ -1,5 +1,7 @@
 import paho.mqtt.client as mqtt
 
+import json
+
 class MqttClient:
     def __init__(self, agents):
         self.agents = agents
@@ -27,12 +29,15 @@ class MqttClient:
         # Check each agent to see if it evaluates to True for the received message
         for agent in self.agents:
             if agent.evaluate(topic):
-                agent.execute(message)
+                output = agent.execute(message)
+                self.publish_msg(output)
 
-    def publish_msg(self, message):
+    def publish_msg(self, payload):
+        message = json.dumps(payload)
         if (self.debugging): print("publishing message without topic", self.topic, message)
         self.client.publish(self.topic, message)
 
-    def publish(self, topic, message):
+    def publish(self, topic, payload):
+        message = json.dumps(payload)
         if (self.debugging): print("publishing message", topic, message)
         self.client.publish(topic, message)

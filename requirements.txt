@@ -2,3 +2,6 @@ paho-mqtt
 python-dotenv
 langchain
 langchain_openai
+langchain-community
+litellm
+langgraph
