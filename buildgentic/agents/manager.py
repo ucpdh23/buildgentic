@@ -1,6 +1,6 @@
 from buildgentic.agents.base_agent import BaseAgent, BuildgenticState
 from buildgentic.agents.prompt_templates import MANAGER_PROMPT, MANAGER_SYSTEM_PROMPT
-from buildgentic.agents.toolkit import FinalAnswer, SearchInADOTool
+from buildgentic.agents.toolkit import FinalAnswer, SearchInADOTool, SourceCodeAnalyzerTool
 from buildgentic.agents.utils import create_scratchpad
 from buildgentic.registry import register_agent
 
@@ -30,7 +30,7 @@ class ManagerAgent(BaseAgent):
             ("assistant", "scratchpad: {scratchpad}"),
         ])
 
-        self.tools = [SearchInADOTool, FinalAnswer]
+        self.tools = [SearchInADOTool, FinalAnswer, SourceCodeAnalyzerTool]
         self.oracle = (
             {
                 "input": lambda x: x['input'],
@@ -73,9 +73,16 @@ class ManagerAgent(BaseAgent):
 
 
     def run_oracle(self, state: list):
+        print("running oracle...")
+
         out = self.oracle.invoke(state)
 
         print(out)
+
+        if out.tool_calls is None or len(out.tool_calls) == 0:
+            return {
+                "intermediate_steps": []
+            }
 
         tool_name = out.tool_calls[0]['name']
         tool_args = out.tool_calls[0]['args']
@@ -86,7 +93,9 @@ class ManagerAgent(BaseAgent):
             "intermediate_steps": [action_out],
         }
 
-    def router(state: list):
+    def router(self, state: list):
+        print("routing...", state)
+
         if isinstance(state["intermediate_steps"], list):
             return state["intermediate_steps"][-1].tool
         else:
@@ -95,6 +104,8 @@ class ManagerAgent(BaseAgent):
 
 
     def run_tool(self, state: list):
+        print("running tool...", state)
+
         tool_name = state["intermediate_steps"][-1].tool
         tool_args = state["intermediate_steps"][-1].tool_input
 
@@ -104,6 +115,7 @@ class ManagerAgent(BaseAgent):
                 out = getattr(clazz, "invoke")(tool_args)
                 break
 
+        print(out)
 
         return {
             "intermediate_steps": [
@@ -119,6 +131,7 @@ class ManagerAgent(BaseAgent):
     def execute(self, message: str):
         json_object = json.loads(message)
         action = json_object['action']
+        print("received action: ", action)
 
         output = {"action": "none"}
         if action == "registration":
@@ -126,8 +139,7 @@ class ManagerAgent(BaseAgent):
         elif action == "execute":
             query = json_object['query']
             out = self.agent_executor.invoke({"input" : query, "chat_history": []})
-#            output = out["intermediate_steps"][-1].tool_input
-            output = {"action": "executed", "message": out}
+            output = {"action": "executed", "message": out["intermediate_steps"][-1].tool_input["answer"]}
 
         return output
         

@@ -11,13 +11,13 @@ requirements = parse_requirements("requirements.txt")
 
 
 setup(
-    name="buildgentic",  # Replace with your project name
-    version="0.1.0",           # Start with an initial version
+    name="buildgentic",  # Project name
+    version="0.1.0",           # Initial version
     description="Agentic solution to generate itself",
     long_description=open("README.md").read(),  # Optional: Load a long description from README
     long_description_content_type="text/markdown",
     author="xan xan",
-    url="https://github.com/ucpdh23/buildgentic",  # Replace with your project's URL
+    url="https://github.com/ucpdh23/buildgentic",  # Github repository
     packages=find_packages(),  # Automatically find and include all packages
     include_package_data=True, # Include any other data files specified in MANIFEST.in
     install_requires=requirements,

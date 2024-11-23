@@ -45,6 +45,7 @@ class BaseAgent(ABC):
                 api_base=LITELLM_BASE_URL,
                 openai_api_key=LITELLM_APIKEY,
                 temperature=0,
+                max_tokens=1000,
                 model=LITELLM_MODEL)
 
             # Place the code to be executed only once here
