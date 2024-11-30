@@ -1,6 +1,6 @@
 from buildgentic.agents.base_agent import BaseAgent, BuildgenticState
-from buildgentic.agents.prompt_templates import MANAGER_PROMPT, MANAGER_SYSTEM_PROMPT
-from buildgentic.agents.toolkit import AddCommentToADOWorkItemFinalAnswer, CreateSubtasksToADOWorkItemFinalAnswer, FinalAnswer, RequestADOWorkItemReassignmentFinalAnswer, SearchInADOTool, SourceCodeAnalyzerTool, UpdateDescriptionToADOWorkItemFinalAnswer
+from buildgentic.agents.prompt_templates import DEVELOPER_SYSTEM_PROMPT, MANAGER_PROMPT, MANAGER_SYSTEM_PROMPT
+from buildgentic.agents.toolkit import AddCommentToADOWorkItemFinalAnswer, CreateSubtasksToADOWorkItemFinalAnswer, DeveloperFinalAnswer, FinalAnswer, RequestADOWorkItemReassignmentFinalAnswer, SearchInADOTool, SourceCodeAnalyzerTool, UpdateDescriptionToADOWorkItemFinalAnswer
 from buildgentic.agents.utils import create_scratchpad
 from buildgentic.registry import register_agent
 
@@ -16,15 +16,15 @@ load_dotenv()
 
 
 
-@register_agent
-class ManagerAgent(BaseAgent):
+#@register_agent
+class DeveloperAgent(BaseAgent):
 
     def __init__(self):
         super().__init__("manager", [SearchInADOTool], MANAGER_PROMPT)
         self.isDebugging = True
 
         self.prompt = ChatPromptTemplate.from_messages([
-            ("system", MANAGER_SYSTEM_PROMPT),
+            ("system", DEVELOPER_SYSTEM_PROMPT),
             MessagesPlaceholder(variable_name="chat_history"),
             ("user", "{input}"),
             ("assistant", "scratchpad: {scratchpad}"),
@@ -32,7 +32,7 @@ class ManagerAgent(BaseAgent):
 
 
 
-        self.tools = [SourceCodeAnalyzerTool, FinalAnswer]
+        self.tools = [SourceCodeAnalyzerTool, DeveloperFinalAnswer]
         
         self.oracle = (
             {
