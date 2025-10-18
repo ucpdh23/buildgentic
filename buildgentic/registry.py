@@ -1,3 +1,5 @@
+import asyncio
+
 from typing import List
 from buildgentic.agents.base_agent import BaseAgent
 
@@ -14,5 +16,13 @@ def register_agent(cls):
 
 def build_registered_agents() -> List[BaseAgent]:
     """Return instances of all registered agents."""
+    output = []
+    for agent in glob_var:
+        builder_method = getattr(agent, "build", None)
+        if callable(builder_method):
+            output.append(asyncio.run(builder_method()))
+        else:
+            agent = agent()
+            output.append(agent)
 
-    return [agent() for agent in glob_var]
+    return output

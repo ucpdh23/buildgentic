@@ -30,7 +30,7 @@ class BaseAgent(ABC):
     _first_time_executed = False
     _llm = None
 
-    def __init__(self, name: str, tools, prompt) -> None:
+    def __init__(self, name: str) -> None:
         super().__init__()
         self.name = name
         self._execute_first_time()

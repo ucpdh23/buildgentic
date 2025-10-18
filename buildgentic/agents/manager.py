@@ -16,11 +16,11 @@ load_dotenv()
 
 
 
-@register_agent
+#@register_agent
 class ManagerAgent(BaseAgent):
 
     def __init__(self):
-        super().__init__("manager", [SearchInADOTool], MANAGER_PROMPT)
+        super().__init__("manager")
         self.isDebugging = True
 
         self.prompt = ChatPromptTemplate.from_messages([

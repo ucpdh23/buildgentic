@@ -6,6 +6,7 @@ class MqttClient:
     def __init__(self, agents):
         self.agents = agents
         self.client = mqtt.Client()
+        self.client.enable_logger()
         self.debugging = True
 
         # Set callback for when a message is received

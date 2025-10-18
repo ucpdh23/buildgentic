@@ -1,3 +1,4 @@
+import asyncio
 
 import paho.mqtt.client as mqtt
 import os
@@ -36,11 +37,15 @@ def startup():
     load_agents_from_directory(directory=os.path.dirname(agents.__file__))
     _agents = build_registered_agents()
 
+    print("creating mqtt client...")
     # Create the MQTT client with the registered agents
     mqtt_client = MqttClient(agents=_agents)
+    print("created")
 
+    print("connecting to mqtt server...")
     # Connect and subscribe to a topic
     mqtt_client.connect(broker=MQTT_BROKER_HOSTNAME, port=int(MQTT_BROKER_PORT), topic=MQTT_BROKER_TOPIC)
+    print("connected")
 
     payload = {
         'action': "welcome",
@@ -59,4 +64,4 @@ def startup():
     print("finalizing startup.")
 
 if __name__ == "__main__":
-    startup()
+    asyncio.run(startup())

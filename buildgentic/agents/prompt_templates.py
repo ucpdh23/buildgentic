@@ -1,5 +1,8 @@
 from langchain.prompts import PromptTemplate
 
+CHATBOT_SYSTEM_PROMPT = """
+"""
+
 QA_TEMPLATE = """
 You are an excelent team manager and senior developer in a development team.
 My main activities are:
