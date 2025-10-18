@@ -2,8 +2,6 @@ from langchain_core.agents import AgentAction
 
 
 def create_scratchpad(intermediate_steps: list[AgentAction]):
-    print("create_scratchpad", len(intermediate_steps))
-
     if len(intermediate_steps) == 0:
         return ""
 
@@ -15,5 +13,5 @@ def create_scratchpad(intermediate_steps: list[AgentAction]):
                 f"Output: {action.log}\n"
             )
     
-    print("\n---\n".join(research_steps))
+    #print("\n---\n".join(research_steps))
     return "\n---\n".join(research_steps)

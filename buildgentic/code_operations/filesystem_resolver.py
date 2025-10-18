@@ -118,7 +118,7 @@ def read_file_content(file_path):
     """
 
     path = os.getenv('REPO_PATH2')
-    file_path = path + file_path
+    file_path = path + "/" + file_path
 
     if not os.path.isfile(file_path):
         raise ValueError(f"The file {file_path} does not exist")
