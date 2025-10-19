@@ -5,7 +5,7 @@ from google.adk.agents.remote_a2a_agent import RemoteA2aAgent
 
 from a2a.types import AgentCapabilities, AgentCard, AgentSkill, TransportProtocol
 
-from ..tools.tools_azureDevOps import load_context
+from buildgentic.tools.tools_azureDevOps import load_context
 
 manager_context = load_context("Wilson")
 
