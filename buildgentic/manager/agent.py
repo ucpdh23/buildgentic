@@ -16,13 +16,36 @@ def get_manager_agent(model_name) -> Agent:
         name='manager',
         description=manager_context['description'],
         instruction=manager_context['instruction'],
-        sub_agents=[RemoteA2aAgent(
-            name="developer",
-            description="Developer",
-            agent_card=(
-                f"http://localhost:8008/a2a/developer_agent{AGENT_CARD_WELL_KNOWN_PATH}"
+        sub_agents=[
+            RemoteA2aAgent(
+                name="architect",
+                description="Architect",
+                agent_card=(
+                    f"http://localhost:8008/a2a/architect_agent{AGENT_CARD_WELL_KNOWN_PATH}"
+                ),
             ),
-        )]
+            RemoteA2aAgent(
+                name="developer",
+                description="Developer",
+                agent_card=(
+                    f"http://localhost:8008/a2a/developer_agent{AGENT_CARD_WELL_KNOWN_PATH}"
+                ),
+            ),
+            RemoteA2aAgent(
+                name="qa",
+                description="QA",
+                agent_card=(
+                    f"http://localhost:8008/a2a/qa_agent{AGENT_CARD_WELL_KNOWN_PATH}"
+                ),
+            ),
+            RemoteA2aAgent(
+                name="compliance",
+                description="Compliance",
+                agent_card=(
+                    f"http://localhost:8008/a2a/compliance_agent{AGENT_CARD_WELL_KNOWN_PATH}"
+                ),
+            ),
+        ]
     )
 
 
