@@ -1,9 +1,6 @@
 paho-mqtt
 python-dotenv
-langchain
-langchain_openai
-langchain-litellm
-langchain-community
-langchain-mcp-adapters
 litellm
-langgraph
+google-adk
+openai
+a2a-sdk
