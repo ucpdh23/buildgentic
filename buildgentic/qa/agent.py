@@ -3,7 +3,7 @@ from google.adk.models.lite_llm import LiteLlm
 
 from a2a.types import AgentCapabilities, AgentCard, AgentSkill, TransportProtocol
 
-from ..tools.tools_azureDevOps import load_context
+from buildgentic.tools.tools_azureDevOps import load_context
 
 
 manager_context = load_context("Anna")
