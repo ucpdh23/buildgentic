@@ -456,7 +456,7 @@ def get_wiki_page_content(page_path: str) -> Optional[str]:
         Contenido de la página como string, o None si hay error
     """
 
-    wiki_name = "CIC.wiki"
+    wiki_name = "buildgentic.wiki"
 
     try:
         base_url = get_azure_devops_base_url()
