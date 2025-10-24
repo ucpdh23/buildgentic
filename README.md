@@ -4,7 +4,7 @@
 [![Python Version](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-**BuildGentic** is a proof-of-concept (POC) Agentic AI system designed to autonomously create and manage AI-powered software development workflows. By orchestrating multiple specialized AI agents, BuildGentic transforms business requirements into fully implemented solutions.
+**BuildGentic** a system to create itself. It is a proof-of-concept (POC) Agentic AI system designed to autonomously create and manage AI-powered software development workflows. By orchestrating multiple specialized AI agents, BuildGentic transforms business requirements into fully implemented solutions.
 
 ## 🌟 Overview
 
