@@ -386,6 +386,7 @@ def load_context(agentName : str) -> Dict[str, str]:
         Diccionario con 'description' e 'instruction', o vacío si hay error
     """
     context = {
+        "name": agentName,
         "description": "",
         "instruction": ""
     }

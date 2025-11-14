@@ -33,9 +33,9 @@ def get_developer_agent_card(agent_url: str) -> AgentCard:
         preferred_transport=TransportProtocol.jsonrpc,
         skills=[
             AgentSkill(
-                id="conversational_agent",
-                name="Conversational Agent",
-                description="A Smart Conversational Agent Enhanced with Web Search Capabilities",
+                id="developer_agent",
+                name=manager_context["name"],
+                description=manager_context['description'],
                 tags=[]
             )
         ],

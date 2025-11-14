@@ -21,28 +21,28 @@ def get_manager_agent(model_name) -> Agent:
                 name="architect",
                 description="Architect",
                 agent_card=(
-                    f"http://localhost:8008/a2a/architect_agent{AGENT_CARD_WELL_KNOWN_PATH}"
+                    f"http://localhost:8008/a2a/architect{AGENT_CARD_WELL_KNOWN_PATH}"
                 ),
             ),
             RemoteA2aAgent(
                 name="developer",
                 description="Developer",
                 agent_card=(
-                    f"http://localhost:8008/a2a/developer_agent{AGENT_CARD_WELL_KNOWN_PATH}"
+                    f"http://localhost:8008/a2a/developer{AGENT_CARD_WELL_KNOWN_PATH}"
                 ),
             ),
             RemoteA2aAgent(
                 name="qa",
                 description="QA",
                 agent_card=(
-                    f"http://localhost:8008/a2a/qa_agent{AGENT_CARD_WELL_KNOWN_PATH}"
+                    f"http://localhost:8008/a2a/qa{AGENT_CARD_WELL_KNOWN_PATH}"
                 ),
             ),
             RemoteA2aAgent(
                 name="compliance",
                 description="Compliance",
                 agent_card=(
-                    f"http://localhost:8008/a2a/compliance_agent{AGENT_CARD_WELL_KNOWN_PATH}"
+                    f"http://localhost:8008/a2a/compliance{AGENT_CARD_WELL_KNOWN_PATH}"
                 ),
             ),
         ]
@@ -63,9 +63,9 @@ def get_manager_agent_card(agent_url: str) -> AgentCard:
         preferred_transport=TransportProtocol.jsonrpc,
         skills=[
             AgentSkill(
-                id="conversational_agent",
-                name="Conversational Agent",
-                description="A Smart Conversational Agent Enhanced with Web Search Capabilities",
+                id="manager_agent",
+                name=manager_context["name"],
+                description=manager_context['description'],
                 tags=[]
             )
         ],
