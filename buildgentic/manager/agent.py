@@ -5,7 +5,18 @@ from google.adk.agents.remote_a2a_agent import RemoteA2aAgent
 
 from a2a.types import AgentCapabilities, AgentCard, AgentSkill, TransportProtocol
 
-from buildgentic.tools.tools_azureDevOps import load_context
+from buildgentic.tools.tools_azureDevOps import (
+    add_comment_to_ticket,
+    add_related_work_item,
+    create_ticket,
+    get_tickets_assigned_to_me,
+    get_work_item_details,
+    load_context,
+    search_work_items_by_tags,
+    search_work_items_by_type,
+    update_ticket_description,
+    update_ticket_status,
+)
 
 manager_context = load_context("Wilson")
 
@@ -16,6 +27,17 @@ def get_manager_agent(model_name) -> Agent:
         name='manager',
         description=manager_context['description'],
         instruction=manager_context['instruction'],
+        tools=[
+            get_tickets_assigned_to_me,
+            get_work_item_details,
+            create_ticket,
+            update_ticket_description,
+            add_comment_to_ticket,
+            update_ticket_status,
+            add_related_work_item,
+            search_work_items_by_type,
+            search_work_items_by_tags,
+        ],
         sub_agents=[
             RemoteA2aAgent(
                 name="architect",
