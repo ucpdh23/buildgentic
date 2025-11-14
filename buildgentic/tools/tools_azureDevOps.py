@@ -475,7 +475,7 @@ def get_wiki_page_content(page_path: str) -> Optional[str]:
                 return None
             wiki_name = wikis[0].get("name")
         # Recuperar el contenido de la página
-        page_url = f"{base_url}/{AZURE_DEVOPS_PROJECT}/_apis/wiki/wikis/{wiki_name}/pages?path={page_path}&includeContent=true&api-version=7.0"
+        page_url = f"{base_url}/_apis/wiki/wikis/{wiki_name}/pages?path={page_path}&includeContent=true&api-version=7.0"
         page_response = requests.get(page_url, headers=headers)
         page_response.raise_for_status()
         page_data = page_response.json()
