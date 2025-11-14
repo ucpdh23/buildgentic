@@ -3,7 +3,7 @@ from google.adk.models.lite_llm import LiteLlm
 
 from a2a.types import AgentCapabilities, AgentCard, AgentSkill, TransportProtocol
 
-from buildgentic.tools.tools_azureDevOps import load_context
+from buildgentic.tools.tools_azureDevOps import add_comment_to_ticket, download_attachment, get_tickets_assigned_to_me, get_work_item_details, load_context, update_ticket_description, update_ticket_status
 
 
 
@@ -17,6 +17,14 @@ def get_architect_agent(model_name) -> Agent:
         name='architect',
         description=manager_context['description'],
         instruction=manager_context['instruction'],
+        tools=[
+            get_tickets_assigned_to_me,
+            get_work_item_details,
+            update_ticket_description,
+            add_comment_to_ticket,
+            download_attachment,
+            update_ticket_status
+        ],
     )
 
 

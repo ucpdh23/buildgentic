@@ -3,6 +3,8 @@ import requests
 import base64
 import json
 
+from google.adk.tools import ToolContext
+
 from typing import Dict, List, Optional, Any
 from datetime import datetime
 from dotenv import load_dotenv
@@ -46,7 +48,7 @@ def get_azure_devops_base_url() -> str:
     return f"https://dev.azure.com/{AZURE_DEVOPS_ORGANIZATION}"
 
 
-def get_tickets_assigned_to_me(state: Optional[str] = None) -> List[Dict[str, Any]]:
+def get_tickets_assigned_to_me(tool_context: ToolContext, state: Optional[str] = None) -> List[Dict[str, Any]]:
     """
     Get all work items assigned to the configured user, acotados al proyecto definido en AZURE_DEVOPS_PROJECT.
 
@@ -56,6 +58,7 @@ def get_tickets_assigned_to_me(state: Optional[str] = None) -> List[Dict[str, An
     Returns:
         List of work items assigned to the user en el proyecto actual
     """
+    
     if state:
         state_filter = f"AND [System.State] = '{state}'"
     else:
