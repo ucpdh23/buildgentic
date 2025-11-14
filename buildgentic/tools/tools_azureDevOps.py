@@ -466,7 +466,7 @@ def get_wiki_page_content(page_path: str) -> Optional[str]:
         headers = get_azure_devops_headers()
         # Si no se indica wiki_name, obtenemos la primera wiki del proyecto
         if not wiki_name:
-            wikis_url = f"{base_url}/{AZURE_DEVOPS_PROJECT}/_apis/wiki/wikis?api-version=7.0"
+            wikis_url = f"{base_url}/_apis/wiki/wikis?api-version=7.0"
             wikis_response = requests.get(wikis_url, headers=headers)
             wikis_response.raise_for_status()
             wikis = wikis_response.json().get("value", [])
