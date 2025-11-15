@@ -2,6 +2,7 @@ import os
 import requests
 import base64
 import json
+import logging
 
 from google.adk.tools import ToolContext
 
@@ -9,8 +10,59 @@ from typing import Dict, List, Optional, Any
 from datetime import datetime
 from dotenv import load_dotenv
 
+
 # Load environment variables from .env file
 load_dotenv()
+
+# Logger for this module
+logger = logging.getLogger(__name__)
+
+
+def __check_response(response, context: str = "request"):
+    """Helper to validate HTTP responses and log useful debug info.
+
+    Raises a requests.exceptions.HTTPError when the response status is not 2xx.
+    """
+    if response is None:
+        logger.error("No response object provided to __check_response for %s", context)
+        raise requests.exceptions.RequestException(f"No response for {context}")
+
+    status = getattr(response, "status_code", None)
+    try:
+        text_preview = None
+        try:
+            text_preview = response.text
+        except Exception:
+            text_preview = None
+
+        if status is None:
+            logger.error("Response has no status_code for %s", context)
+            raise requests.exceptions.RequestException(f"No status code for {context}")
+
+        if 200 <= status < 300:
+            logger.debug("HTTP %s OK for %s. Response preview: %s", status, context, (text_preview or "")[:500])
+            return
+
+        # Non-success status: log details and raise
+        if text_preview is not None:
+            body = text_preview
+        else:
+            try:
+                body = response.content.decode(errors="replace")
+            except Exception:
+                body = "<unreadable>"
+
+        short = body if len(body) <= 1000 else body[:1000] + "..."
+        logger.error("HTTP %s error for %s. Response body (truncated): %s", status, context, short)
+        http_err = requests.exceptions.HTTPError(f"HTTP {status} for {context}")
+        http_err.response = response
+        raise http_err
+    except requests.exceptions.RequestException:
+        # propagate RequestException subclasses
+        raise
+    except Exception as e:
+        logger.exception("Unexpected error while checking response for %s: %s", context, e)
+        raise
 
 
 # Azure DevOps Configuration - Global Variables from .env file
@@ -81,7 +133,7 @@ def get_tickets_assigned_to_me(tool_context: ToolContext, state: Optional[str] =
         }
         url = f"{base_url}/{AZURE_DEVOPS_PROJECT}/_apis/wit/wiql?api-version=7.0"
         response = requests.post(url, headers=headers, json=wiql_query)
-        response.raise_for_status()
+        __check_response(response, "WIQL assigned tickets")
         wiql_result = response.json()
         work_items = []
         # Get detailed information for each work item
@@ -90,11 +142,11 @@ def get_tickets_assigned_to_me(tool_context: ToolContext, state: Optional[str] =
             if ids:
                 details_url = f"{base_url}/{AZURE_DEVOPS_PROJECT}/_apis/wit/workitems?ids={','.join(ids)}&api-version=7.0"
                 details_response = requests.get(details_url, headers=headers)
-                details_response.raise_for_status()
+                __check_response(details_response, f"work items details for ids {','.join(ids)}")
                 work_items = details_response.json().get("value", [])
         return work_items
     except requests.exceptions.RequestException as e:
-        print(f"Error fetching assigned tickets: {e}")
+        logger.exception("Error fetching assigned tickets: %s", e)
         return []
 
 
@@ -114,12 +166,12 @@ def get_work_item_details(work_item_id: int) -> Optional[Dict[str, Any]]:
 
         url = f"{base_url}/{AZURE_DEVOPS_PROJECT}/_apis/wit/workitems/{work_item_id}?$expand=all&api-version=7.0"
         response = requests.get(url, headers=headers)
-        response.raise_for_status()
+        __check_response(response, f"get work item {work_item_id}")
 
         return response.json()
 
     except requests.exceptions.RequestException as e:
-        print(f"Error fetching work item {work_item_id}: {e}")
+        logger.exception("Error fetching work item %s: %s", work_item_id, e)
         return None
 
 
@@ -156,13 +208,13 @@ def update_ticket_description(work_item_id: int, new_description_markdown: str) 
         headers["Content-Type"] = "application/json-patch+json"
 
         response = requests.patch(url, headers=headers, json=patch_document)
-        response.raise_for_status()
+        __check_response(response, f"update description for work item {work_item_id}")
 
-        print(f"Successfully updated description for work item {work_item_id}")
+        logger.info("Successfully updated description for work item %s", work_item_id)
         return True
 
     except requests.exceptions.RequestException as e:
-        print(f"Error updating work item {work_item_id} description: {e}")
+        logger.exception("Error updating work item %s description: %s", work_item_id, e)
         return False
 
 
@@ -186,15 +238,15 @@ def add_comment_to_ticket(work_item_id: int, comment: str) -> bool:
         comment_data = {
             "text": processed_comment
         }
-        print("comment", processed_comment)
+        logger.debug("Processed comment for work_item %s: %s", work_item_id, processed_comment)
         url = f"{base_url}/{AZURE_DEVOPS_PROJECT}/_apis/wit/workitems/{work_item_id}/comments?format=0&api-version=7.1-preview.4"
         headers["Content-Type"] = "application/json"
         response = requests.post(url, headers=headers, json=comment_data)
-        response.raise_for_status()
-        print(f"Successfully added markdown comment to work item {work_item_id}")
+        __check_response(response, f"add comment to work item {work_item_id}")
+        logger.info("Successfully added markdown comment to work item %s", work_item_id)
         return True
     except requests.exceptions.RequestException as e:
-        print(f"Error adding comment to work item {work_item_id}: {e}")
+        logger.exception("Error adding comment to work item %s: %s", work_item_id, e)
         return False
 
 
@@ -216,7 +268,7 @@ def download_attachment(attachment_id: str, file_name: str, download_path: str =
 
         url = f"{base_url}/_apis/wit/attachments/{attachment_id}?api-version=7.0"
         response = requests.get(url, headers=headers, stream=True)
-        response.raise_for_status()
+        __check_response(response, f"download attachment {attachment_id}")
 
         file_path = os.path.join(download_path, file_name)
 
@@ -224,14 +276,14 @@ def download_attachment(attachment_id: str, file_name: str, download_path: str =
             for chunk in response.iter_content(chunk_size=8192):
                 file.write(chunk)
 
-        print(f"Successfully downloaded attachment to {file_path}")
+        logger.info("Successfully downloaded attachment to %s", file_path)
         return True
 
     except requests.exceptions.RequestException as e:
-        print(f"Error downloading attachment {attachment_id}: {e}")
+        logger.exception("Error downloading attachment %s: %s", attachment_id, e)
         return False
     except IOError as e:
-        print(f"Error saving file {file_name}: {e}")
+        logger.exception("Error saving file %s: %s", file_name, e)
         return False
 
 
@@ -262,13 +314,13 @@ def update_ticket_status(work_item_id: int, new_status: str) -> bool:
         headers["Content-Type"] = "application/json-patch+json"
 
         response = requests.patch(url, headers=headers, json=patch_document)
-        response.raise_for_status()
+        __check_response(response, f"update status for work item {work_item_id} to {new_status}")
 
-        print(f"Successfully updated status of work item {work_item_id} to '{new_status}'")
+        logger.info("Successfully updated status of work item %s to '%s'", work_item_id, new_status)
         return True
 
     except requests.exceptions.RequestException as e:
-        print(f"Error updating work item {work_item_id} status: {e}")
+        logger.exception("Error updating work item %s status: %s", work_item_id, e)
         return False
 
 
@@ -308,7 +360,7 @@ def get_work_item_attachments(work_item_id: int) -> List[Dict[str, Any]]:
         return attachments
 
     except Exception as e:
-        print(f"Error getting attachments for work item {work_item_id}: {e}")
+        logger.exception("Error getting attachments for work item %s: %s", work_item_id, e)
         return []
 
 
@@ -325,7 +377,7 @@ def create_ticket(title: str, description_in_markdown: Optional[str] = None, wor
     # Valores soportados por Azure DevOps: Bug, User Story, Epic, Task, Feature
     supported_types = {"Bug", "User Story", "Epic", "Task", "Feature"}
     if work_item_type not in supported_types:
-        print(f"Error: work_item_type '{work_item_type}' no soportado. Valores válidos: {supported_types}")
+        logger.error("work_item_type '%s' no soportado. Valores válidos: %s", work_item_type, supported_types)
         return None
     try:
         base_url = get_azure_devops_base_url()
@@ -338,17 +390,17 @@ def create_ticket(title: str, description_in_markdown: Optional[str] = None, wor
         url = f"{base_url}/{AZURE_DEVOPS_PROJECT}/_apis/wit/workitems/${work_item_type}?api-version=7.0"
         headers["Content-Type"] = "application/json-patch+json"
         response = requests.post(url, headers=headers, json=work_item_data)
-        response.raise_for_status()
+        __check_response(response, f"create work item '{title}'")
         created_work_item = response.json()
         work_item_id = created_work_item.get("id")
-        print(f"Successfully created work item {work_item_id} of type '{work_item_type}' with title: '{title}'")
+        logger.info("Successfully created work item %s of type '%s' with title: '%s'", work_item_id, work_item_type, title)
 
         if description_in_markdown:
             update_ticket_description(work_item_id, description_in_markdown)
 
         return created_work_item
     except requests.exceptions.RequestException as e:
-        print(f"Error creating work item with title '{title}': {e}")
+        logger.exception("Error creating work item with title '%s': %s", title, e)
         return None
 
 
@@ -366,14 +418,14 @@ def get_comments_from_ticket(work_item_id: int) -> Optional[list]:
         headers = get_azure_devops_headers()
         url = f"{base_url}/{AZURE_DEVOPS_PROJECT}/_apis/wit/workitems/{work_item_id}/comments?api-version=7.0-preview.3"
         response = requests.get(url, headers=headers)
-        response.raise_for_status()
+        __check_response(response, f"get comments for work item {work_item_id}")
         data = response.json()
         # Los comentarios están en el campo 'comments' (lista de dicts)
         comments = data.get("comments", [])
-        print(f"Se han recuperado {len(comments)} comentarios del work item {work_item_id}")
+        logger.info("Se han recuperado %d comentarios del work item %s", len(comments), work_item_id)
         return comments
     except requests.exceptions.RequestException as e:
-        print(f"Error obteniendo comentarios del work item {work_item_id}: {e}")
+        logger.exception("Error obteniendo comentarios del work item %s: %s", work_item_id, e)
         return None
 
 def load_context(agentName : str) -> Dict[str, str]:
@@ -415,7 +467,7 @@ def load_context(agentName : str) -> Dict[str, str]:
     elif instruction_start != -1:
         context["instruction"] = agent_definition[instruction_start + len(instruction_marker):].strip()
     else:
-        print(f"Advertencia: No se encontraron secciones de descripción o instrucciones en la definición del agente '{agentName}'.")
+        logger.warning("No se encontraron secciones de descripción o instrucciones en la definición del agente '%s'.", agentName)
     
     workflow_description = get_wiki_page_content("Management Workflows")
     if workflow_description:
@@ -437,13 +489,13 @@ def get_instructions(agentName : str) -> Optional[str]:
 
     # Validar que ambas páginas se hayan recuperado correctamente
     if agent_definition is None and workflow_description is None:
-        print(f"Error: No se pudo recuperar ni la definición del agente '{agentName}' ni el workflow de gestión.")
+        logger.error("No se pudo recuperar ni la definición del agente '%s' ni el workflow de gestión.", agentName)
         return None
     elif agent_definition is None:
-        print(f"Advertencia: No se pudo recuperar la definición del agente '{agentName}'. Usando solo workflow description.")
+        logger.warning("No se pudo recuperar la definición del agente '%s'. Usando solo workflow description.", agentName)
         return workflow_description
     elif workflow_description is None:
-        print(f"Advertencia: No se pudo recuperar la descripción del workflow. Usando solo agent definition.")
+        logger.warning("No se pudo recuperar la descripción del workflow. Usando solo agent definition.")
         return agent_definition
 
     return agent_definition + "\n\n" + workflow_description
@@ -469,24 +521,24 @@ def get_wiki_page_content(page_path: str) -> Optional[str]:
         if not wiki_name:
             wikis_url = f"{base_url}/{AZURE_DEVOPS_PROJECT}/_apis/wiki/wikis?api-version=7.0"
             wikis_response = requests.get(wikis_url, headers=headers)
-            wikis_response.raise_for_status()
+            __check_response(wikis_response, "get wikis list")
             wikis = wikis_response.json().get("value", [])
             if not wikis:
-                print("No se encontró ninguna wiki asociada al proyecto.")
+                logger.warning("No se encontró ninguna wiki asociada al proyecto.")
                 return None
             wiki_name = wikis[0].get("name")
         # Recuperar el contenido de la página
         page_url = f"{base_url}/{AZURE_DEVOPS_PROJECT}/_apis/wiki/wikis/{wiki_name}/pages?path={page_path}&includeContent=true&api-version=7.0"
         page_response = requests.get(page_url, headers=headers)
-        page_response.raise_for_status()
+        __check_response(page_response, f"get wiki page {page_path}")
         page_data = page_response.json()
         content = page_data.get("content")
         if content is None:
-            print(f"No se encontró contenido en la página '{page_path}' de la wiki '{wiki_name}'.")
+            logger.warning("No se encontró contenido en la página '%s' de la wiki '%s'.", page_path, wiki_name)
 
         return content
     except requests.exceptions.RequestException as e:
-        print(f"Error recuperando la página de la wiki: {e}")
+        logger.exception("Error recuperando la página de la wiki: %s", e)
         return None
 
 
@@ -513,20 +565,20 @@ def update_wiki_page_content(page_path: str, new_content: str, comment: Optional
         if not wiki_name:
             wikis_url = f"{base_url}/{AZURE_DEVOPS_PROJECT}/_apis/wiki/wikis?api-version=7.0"
             wikis_response = requests.get(wikis_url, headers=headers)
-            wikis_response.raise_for_status()
+            __check_response(wikis_response, "get wikis list")
             wikis = wikis_response.json().get("value", [])
             if not wikis:
-                print("No se encontró ninguna wiki asociada al proyecto.")
+                logger.warning("No se encontró ninguna wiki asociada al proyecto.")
                 return False
             wiki_name = wikis[0].get("name")
 
         # Primero obtenemos la página actual para obtener su ETag (versión)
-        print("primer acceso")
+        logger.debug("Primer acceso a la página wiki '%s' para path '%s'", wiki_name, page_path)
         page_url = f"{base_url}/{AZURE_DEVOPS_PROJECT}/_apis/wiki/wikis/{wiki_name}/pages?path={page_path}&includeContent=true&api-version=7.0"
         page_response = requests.get(page_url, headers=headers)
-        page_response.raise_for_status()
+        __check_response(page_response, f"get wiki page for update {page_path}")
         page_data = page_response.json()
-        etag = page_response.headers['ETag']
+        etag = page_response.headers.get('ETag')
 
         # Azure DevOps requiere el ETag para actualizaciones (control de concurrencia)
         #etag = page_data.get("eTag")
@@ -548,16 +600,19 @@ def update_wiki_page_content(page_path: str, new_content: str, comment: Optional
         headers["Content-Type"] = "application/json"
 
         update_response = requests.put(page_url, headers=headers, json=update_data)
-        update_response.raise_for_status()
+        __check_response(update_response, f"update wiki page {page_path}")
 
-        print(f"Successfully updated wiki page '{page_path}' in wiki '{wiki_name}'")
+        logger.info("Successfully updated wiki page '%s' in wiki '%s'", page_path, wiki_name)
         return True
 
     except requests.exceptions.RequestException as e:
-        print(f"Error actualizando la página de la wiki '{page_path}': {e}")
+        logger.exception("Error actualizando la página de la wiki '%s': %s", page_path, e)
         if hasattr(e, 'response') and e.response is not None:
-            print(f"Response status: {e.response.status_code}")
-            print(f"Response body: {e.response.text}")
+            try:
+                logger.error("Response status: %s", e.response.status_code)
+                logger.debug("Response body: %s", e.response.text)
+            except Exception:
+                pass
         return False
 
 
@@ -597,16 +652,19 @@ def add_related_work_item(work_item_id: int, related_work_item_id: int) -> bool:
         headers["Content-Type"] = "application/json-patch+json"
 
         response = requests.patch(url, headers=headers, json=patch_document)
-        response.raise_for_status()
+        __check_response(response, f"add related work item link {work_item_id} -> {related_work_item_id}")
 
-        print(f"Successfully added Related link between work item {work_item_id} and {related_work_item_id}")
+        logger.info("Successfully added Related link between work item %s and %s", work_item_id, related_work_item_id)
         return True
 
     except requests.exceptions.RequestException as e:
-        print(f"Error adding related work item link: {e}")
+        logger.exception("Error adding related work item link: %s", e)
         if hasattr(e, 'response') and e.response is not None:
-            print(f"Response status: {e.response.status_code}")
-            print(f"Response body: {e.response.text}")
+            try:
+                logger.error("Response status: %s", e.response.status_code)
+                logger.debug("Response body: %s", e.response.text)
+            except Exception:
+                pass
         return False
 
 
@@ -617,7 +675,7 @@ def get_work_items_by_type(work_item_type: str) -> List[Dict[str, Any]]:
     Conserva la firma original pero ahora devuelve los campos unificados:
     id, title, description, state, type, tags
     """
-    print("[DEPRECATED] get_work_items_by_type -> usa search_work_items_by_type")
+    logger.warning("[DEPRECATED] get_work_items_by_type -> usa search_work_items_by_type")
     return search_work_items_by_type(work_item_type=work_item_type)
 
 
@@ -633,7 +691,7 @@ def get_work_items_by_tags(
     Conserva la firma original pero ahora devuelve los campos unificados:
     id, title, description, state, type, tags
     """
-    print("[DEPRECATED] get_work_items_by_tags -> usa search_work_items_by_tags")
+    logger.warning("[DEPRECATED] get_work_items_by_tags -> usa search_work_items_by_tags")
     return search_work_items_by_tags(tags=tags, match=match, work_item_type=work_item_type, state=state)
 
 
@@ -675,7 +733,7 @@ def _execute_wiql_for_ids(where_clause: str) -> List[str]:
     }
     url = f"{base_url}/{AZURE_DEVOPS_PROJECT}/_apis/wit/wiql?api-version=7.0"
     response = requests.post(url, headers=headers, json=wiql_query)
-    response.raise_for_status()
+    __check_response(response, "execute WIQL for ids")
     wiql_result = response.json()
     return [str(item["id"]) for item in wiql_result.get("workItems", [])]
 
@@ -692,7 +750,7 @@ def _fetch_work_items_details(ids: List[str], fields: List[str]) -> List[Dict[st
             f"{base_url}/{AZURE_DEVOPS_PROJECT}/_apis/wit/workitems?ids={','.join(group)}&fields={field_param}&api-version=7.0"
         )
         details_response = requests.get(details_url, headers=headers)
-        details_response.raise_for_status()
+        __check_response(details_response, f"fetch work items details for ids {','.join(group)}")
         all_items.extend(details_response.json().get("value", []))
     return all_items
 
