@@ -7,6 +7,13 @@ from a2a.types import AgentCapabilities, AgentCard, AgentSkill, TransportProtoco
 
 from buildgentic.tools.tools_azureDevOps import add_comment_to_ticket, download_attachment, get_tickets_assigned_to_me, get_work_item_details, load_context, update_ticket_description, update_ticket_status 
 
+import logging
+
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s - %(levelname)s - %(name)s - %(message)s'
+)
+
 manager_context = load_context("Wilson")
 
 def get_manager_agent(model_name) -> Agent:
